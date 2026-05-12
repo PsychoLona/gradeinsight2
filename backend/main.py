@@ -775,16 +775,27 @@ def get_dashboard(
                 "score": result["total_score"],
                 "grade": result["grade"]
             })
-            
-    total_score_sum = sum(emp.grade_result.total_score for emp in employees)
+
+    total_score_sum = 0
+    for emp in employees:
+        emp_data = {
+            "tasks_completed": emp.tasks_completed,
+            "deadlines_met": emp.deadlines_met,
+            "code_quality_score": emp.code_quality_score,
+            "communication_score": emp.communication_score
+        }
+        weights = get_competency_weights_from_db(emp.position, db)
+        result = calculate_grade(emp_data, weights, grade_levels)
+        total_score_sum += result["total_score"]
+
     avg_score = round(total_score_sum / len(employees), 2) if employees else 0
-    
-return {
-    "grades_count": grades_count,
-    "hipo_employees": hipo_list,
-    "total_employees": len(employees),
-    "avg_score": avg_score
-}
+
+    return {
+        "grades_count": grades_count,
+        "hipo_employees": hipo_list,
+        "total_employees": len(employees),
+        "avg_score": avg_score
+    }
 
 
 @app.get("/departments")
