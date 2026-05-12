@@ -752,6 +752,7 @@ def get_dashboard(
     employees = query.all()
     grades_count = {"Junior": 0, "Middle": 0, "Senior": 0}
     hipo_list = []
+    total_score_sum = 0
 
     grade_levels = get_grade_levels_from_db(db)
 
@@ -766,6 +767,7 @@ def get_dashboard(
         result = calculate_grade(emp_data, weights, grade_levels)
 
         grades_count[result["grade"]] = grades_count.get(result["grade"], 0) + 1
+        total_score_sum += result["total_score"]
 
         if result["total_score"] > 0.85:
             hipo_list.append({
@@ -776,25 +778,20 @@ def get_dashboard(
                 "grade": result["grade"]
             })
 
-    total_score_sum = 0
-    for emp in employees:
-        emp_data = {
-            "tasks_completed": emp.tasks_completed,
-            "deadlines_met": emp.deadlines_met,
-            "code_quality_score": emp.code_quality_score,
-            "communication_score": emp.communication_score
-        }
-        weights = get_competency_weights_from_db(emp.position, db)
-        result = calculate_grade(emp_data, weights, grade_levels)
-        total_score_sum += result["total_score"]
-
     avg_score = round(total_score_sum / len(employees), 2) if employees else 0
+
+    # Получаем название компании
+    company_name = None
+    if current_user.company_id:
+        company = db.query(Company).filter(Company.id == current_user.company_id).first()
+        company_name = company.name if company else None
 
     return {
         "grades_count": grades_count,
         "hipo_employees": hipo_list,
         "total_employees": len(employees),
-        "avg_score": avg_score
+        "avg_score": avg_score,
+        "company_name": company_name
     }
 
 
