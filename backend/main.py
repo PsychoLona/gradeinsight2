@@ -775,12 +775,17 @@ def get_dashboard(
                 "score": result["total_score"],
                 "grade": result["grade"]
             })
+            
+    total_score_sum = sum(emp.grade_result.total_score for emp in employees)
+    avg_score = round(total_score_sum / len(employees), 2) if employees else 0
+    
+return {
+    "grades_count": grades_count,
+    "hipo_employees": hipo_list,
+    "total_employees": len(employees),
+    "avg_score": avg_score
+}
 
-    return {
-        "grades_count": grades_count,
-        "hipo_employees": hipo_list,
-        "total_employees": len(employees)
-    }
 
 @app.get("/departments")
 def get_departments(
