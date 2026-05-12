@@ -62,7 +62,16 @@
             color: transparent;
             display: inline-block;
         }
-
+        .company-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
         .subtitle {
             color: #718096;
             margin-bottom: 20px;
@@ -486,6 +495,7 @@
         <div class="container">
             <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
             <h1>📊 GradeInsight</h1>
+            <div id="companyNameBadge" class="company-badge" style="display: none;"></div>
             <div class="subtitle">Интеллектуальная система поддержки принятия решений при грейдировании персонала</div>
 
             <div class="stats-grid">
@@ -679,6 +689,17 @@
                     `).join('');
                 } else {
                     hipoContainer.innerHTML = '<p>Нет сотрудников с высоким потенциалом</p>';
+                }
+
+                if (dashboard.company_name) {
+                    const badge = document.getElementById('companyNameBadge');
+                    badge.textContent = `🏢 ${dashboard.company_name}`;
+                    badge.style.display = 'inline-block';
+                } else if (role === 'super_admin') {
+                    const badge = document.getElementById('companyNameBadge');
+                    badge.textContent = `👑 Системный администратор`;
+                    badge.style.display = 'inline-block';
+                    badge.style.background = 'linear-gradient(135deg, #f56565, #e53e3e)';
                 }
             } catch (error) {
                 console.error('Ошибка загрузки дашборда:', error);
