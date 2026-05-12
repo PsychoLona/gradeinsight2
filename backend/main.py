@@ -920,6 +920,38 @@ async def add_grade_columns(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         return {"error": str(e)}
+
+@app.get("/migrate/add_company_support")
+def migrate_add_company_support(db: Session = Depends(get_db)):
+    """Временный эндпоинт для миграции БД (добавление company_id)"""
+    try:
+        from sqlalchemy import text
+        
+        # Создаём таблицу companies
+        db.execute(text("""
+            CREATE TABLE IF NOT EXISTS companies (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                is_active BOOLEAN DEFAULT TRUE
+            )
+        """))
+        
+        # Добавляем колонку company_id в users
+        db.execute(text("""
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id)
+        """))
+        
+        # Добавляем колонку company_id в employees
+        db.execute(text("""
+            ALTER TABLE employees ADD COLUMN IF NOT EXISTS company_id INTEGER REFERENCES companies(id)
+        """))
+        
+        db.commit()
+        return {"message": "Migration completed successfully"}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
 # ==================== Запуск ====================
 
 if __name__ == "__main__":
