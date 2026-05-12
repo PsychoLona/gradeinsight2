@@ -553,37 +553,58 @@
             }
         }
 
+            // Регистрация компании
         document.getElementById('registerCompanyBtn').addEventListener('click', async () => {
-            const company_name = document.getElementById('regCompanyName').value.trim();
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirm = document.getElementById('regPasswordConfirm').value;
-            
-            if (!company_name || !username || !password) {
-                msgDiv.innerText = 'Заполните все поля';
-                return;
+        const company_name = document.getElementById('regCompanyName').value.trim();
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value;
+        const confirm = document.getElementById('regPasswordConfirm').value;
+        const msgDiv = document.getElementById('registerCompanyMessage');
+    
+        if (!company_name || !username || !password) {
+            msgDiv.innerText = 'Заполните все поля';
+            return;
+        }
+        if (password !== confirm) {
+            msgDiv.innerText = 'Пароли не совпадают';
+            return;
+        }
+        if (password.length < 4) {
+            msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
+            return;
+        }
+    
+        msgDiv.innerText = 'Регистрация...';
+        msgDiv.style.color = 'blue';
+    
+        try {
+            const response = await fetch(`${API_URL}/register_company?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&company_name=${encodeURIComponent(company_name)}`, {
+                method: 'POST'
+            });
+            const data = await response.json();
+            if (response.ok) {
+                msgDiv.innerText = 'Организация зарегистрирована! Теперь войдите.';
+                msgDiv.style.color = 'green';
+                // Очищаем поля
+                document.getElementById('regCompanyName').value = '';
+                document.getElementById('regUsername').value = '';
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regPasswordConfirm').value = '';
+                // Переключаемся на форму входа через 2 секунды
+                setTimeout(() => {
+                    document.getElementById('registerCompanyForm').style.display = 'none';
+                    document.getElementById('loginForm').style.display = 'block';
+                    msgDiv.innerText = '';
+                }, 2000);
+            } else {
+                msgDiv.innerText = data.detail || 'Ошибка регистрации';
+                msgDiv.style.color = 'red';
             }
-            if (password !== confirm) {
-                msgDiv.innerText = 'Пароли не совпадают';
-                return;
-            }
-            
-            try {
-                const res = await fetch(`${API_URL}/register_company?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&company_name=${encodeURIComponent(company_name)}`, {
-                    method: 'POST'
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    alert('Организация зарегистрирована! Теперь войдите.');
-                    // Переключиться на форму входа
-                } else {
-                    msgDiv.innerText = data.detail;
-                }
-            } catch (err) {
-                msgDiv.innerText = 'Ошибка соединения';
-            }
-        });
-        
+        } catch (err) {
+            msgDiv.innerText = 'Ошибка соединения';
+            msgDiv.style.color = 'red';
+        }
+    });
         async function loadDepartments() {
             try {
                 const response = await fetchWithAuth(`${API_URL}/departments`);
