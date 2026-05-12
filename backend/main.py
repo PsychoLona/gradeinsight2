@@ -361,17 +361,19 @@ def register_company(
 @app.get("/employees")
 def get_employees(
     department: Optional[str] = None,
-    db: Session = Depends(get_db), 
-    current_user: User = Depends(require_role(["admin", "hr"]))
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     query = db.query(Employee)
     
-        company_id = get_company_filter(current_user, db)
+    # Фильтр по компании (для всех, кроме super_admin)
+    company_id = get_company_filter(current_user, db)
     if company_id is not None:
         query = query.filter(Employee.company_id == company_id)
-        
+    
     if department:
         query = query.filter(Employee.department == department)
+    
     employees = query.all()
     result = []
     grade_levels = get_grade_levels_from_db(db)
