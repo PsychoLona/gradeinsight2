@@ -25,6 +25,22 @@
             to { opacity: 1; }
         }
 
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -55,6 +71,43 @@
             padding-left: 10px;
         }
 
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            border-radius: 20px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s;
+            border: 1px solid #edf2f7;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 8px;
+        }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -69,6 +122,16 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             transition: all 0.3s;
             border: 1px solid #edf2f7;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.1);
         }
 
         .full-width {
@@ -89,7 +152,6 @@
             margin: 0 auto;
         }
 
-        /* Таблица с горизонтальной прокруткой */
         .employees-table-wrapper {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -185,6 +247,12 @@
             margin: 8px 0;
             border-radius: 16px;
             transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .hipo-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(237,137,54,0.2);
         }
 
         .upload-area, .filter-area {
@@ -217,6 +285,18 @@
             text-align: center;
             padding: 20px;
             color: #718096;
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, #e2e8f0 25%, #edf2f7 50%, #e2e8f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         .modal {
@@ -267,12 +347,14 @@
             border: 1px solid #e2e8f0;
             border-radius: 16px;
         }
+
         .link-btn {
             background: none;
             color: #667eea;
             margin-top: 10px;
             box-shadow: none;
         }
+
         .link-btn:hover {
             background: none;
             transform: none;
@@ -294,121 +376,78 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Адаптивность для мобильных */
+        .floating-action-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 100;
+            font-size: 24px;
+        }
+
+        .floating-action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+        }
+
+        .recommendation-up {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .recommendation-down {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .recommendation-keep {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
         @media (max-width: 768px) {
-            body {
-                padding: 12px;
-            }
-
-            .container {
-                padding: 16px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .subtitle {
-                font-size: 0.75rem;
-                margin-bottom: 16px;
-            }
-
             .dashboard-grid {
                 grid-template-columns: 1fr;
-                gap: 16px;
             }
-
             .full-width {
                 grid-column: span 1;
             }
-
-            .card {
-                padding: 14px;
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
-
-            h2 {
-                font-size: 1.2rem;
-                margin-bottom: 12px;
-            }
-
-            .upload-area {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .upload-area input, .upload-area button, .filter-area select, .filter-area button {
-                width: 100%;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .action-buttons button {
-                width: 100%;
-            }
-
-            .hipo-card {
-                width: 100%;
-                margin: 8px 0;
-            }
-
-            .logout-btn {
-                position: relative;
-                top: auto;
-                right: auto;
-                margin-bottom: 16px;
-                display: inline-block;
-                width: 100%;
-            }
-
-            .employee-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-            }
-
-            table {
-                font-size: 0.75rem;
-                min-width: 500px;
-            }
-
-            th, td {
-                padding: 8px 6px;
-            }
-
-            button {
-                padding: 8px 12px;
-                font-size: 0.8rem;
+            .floating-action-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
             }
         }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 8px;
-            }
-
-            .container {
-                padding: 12px;
-            }
-
-            h1 {
-                font-size: 1.3rem;
-            }
-
-            .subtitle {
-                font-size: 0.7rem;
-            }
-
-            table {
-                font-size: 0.7rem;
-                min-width: 450px;
-            }
-        }
-        .recommendation-up { color: #48bb78; font-weight: bold; }
-        .recommendation-down { color: #f56565; font-weight: bold; }
-        .recommendation-keep { color: #718096; }
     </style>
 </head>
 <body>
@@ -417,11 +456,11 @@
         <input type="text" id="username" placeholder="Логин">
         <input type="password" id="password" placeholder="Пароль">
         <button id="loginBtn">Войти</button>
-        <button id="showRegisterBtn" class="link-btn" style="display: inline-block;">Нет аккаунта? Зарегистрироваться</button>
-        <button id="showRegisterCompanyBtn" class="link-btn" style="display: inline-block; margin-top: 5px;">🏢 Зарегистрировать организацию</button>
+        <button id="showRegisterBtn" class="link-btn">Нет аккаунта? Зарегистрироваться</button>
+        <button id="showRegisterCompanyBtn" class="link-btn">🏢 Зарегистрировать организацию</button>
         <div id="loginMessage" style="color: red; margin-top: 10px;"></div>
     </div>
-    
+
     <div id="registerForm" class="login-container" style="display: none;">
         <h2>📝 Регистрация руководителя (HR)</h2>
         <input type="text" id="regUsername" placeholder="Логин">
@@ -432,22 +471,45 @@
         <div id="registerMessage" style="color: red; margin-top: 10px;"></div>
     </div>
 
-<div id="registerCompanyForm" class="login-container" style="display: none;">
-    <h2>📝 Регистрация организации</h2>
-    <input type="text" id="regCompanyName" placeholder="Название организации">
-    <input type="text" id="regCompanyUsername" placeholder="Логин администратора">
-    <input type="password" id="regCompanyPassword" placeholder="Пароль">
-    <input type="password" id="regCompanyPasswordConfirm" placeholder="Повторите пароль">
-    <button id="registerCompanyBtn">Зарегистрировать организацию</button>
-    <button id="showLoginFromRegCompanyBtn" class="link-btn">Уже есть аккаунт? Войти</button>
-    <div id="registerCompanyMessage" style="color: red; margin-top: 10px;"></div>
-</div>
-    
+    <div id="registerCompanyForm" class="login-container" style="display: none;">
+        <h2>📝 Регистрация организации</h2>
+        <input type="text" id="regCompanyName" placeholder="Название организации">
+        <input type="text" id="regCompanyUsername" placeholder="Логин администратора">
+        <input type="password" id="regCompanyPassword" placeholder="Пароль">
+        <input type="password" id="regCompanyPasswordConfirm" placeholder="Повторите пароль">
+        <button id="registerCompanyBtn">Зарегистрировать организацию</button>
+        <button id="showLoginFromRegCompanyBtn" class="link-btn">Уже есть аккаунт? Войти</button>
+        <div id="registerCompanyMessage" style="color: red; margin-top: 10px;"></div>
+    </div>
+
     <div id="appContent" style="display: none;">
         <div class="container">
             <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
             <h1>📊 GradeInsight</h1>
             <div class="subtitle">Интеллектуальная система поддержки принятия решений при грейдировании персонала</div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalEmployees">—</div>
+                    <div class="stat-label">👥 Всего сотрудников</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgScore">—</div>
+                    <div class="stat-label">📈 Средний балл</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="juniorCount">—</div>
+                    <div class="stat-label">🟢 Junior</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="middleCount">—</div>
+                    <div class="stat-label">🟠 Middle</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="seniorCount">—</div>
+                    <div class="stat-label">🟣 Senior</div>
+                </div>
+            </div>
 
             <div class="upload-area">
                 <h3 style="margin:0;">📂 Загрузить данные</h3>
@@ -505,6 +567,8 @@
         </div>
     </div>
 
+    <div class="floating-action-btn" id="backToTop" title="Наверх">↑</div>
+
     <script>
         const API_URL = '';
         let token = localStorage.getItem('token');
@@ -512,7 +576,6 @@
         const employee_id = localStorage.getItem('employee_id');
         let chart = null;
 
-        // Данные для сортировки
         let currentEmployeesData = [];
         let currentSortColumn = null;
         let currentSortDirection = 'asc';
@@ -539,10 +602,11 @@
             localStorage.removeItem('employee_id');
             location.reload();
         });
-        
-            if (role === 'admin') {
-                document.getElementById('fullClearDbBtn').style.display = 'inline-block';
-            }
+
+        if (role === 'admin') {
+            document.getElementById('fullClearDbBtn').style.display = 'inline-block';
+        }
+
         async function checkAccounts() {
             try {
                 const response = await fetchWithAuth(`${API_URL}/check-accounts`);
@@ -553,60 +617,6 @@
             }
         }
 
-
-               // Регистрация компании
-        document.getElementById('registerCompanyBtn').addEventListener('click', async () => {
-            const company_name = document.getElementById('regCompanyName').value.trim();
-            const username = document.getElementById('regCompanyUsername').value.trim();
-            const password = document.getElementById('regCompanyPassword').value;
-            const confirm = document.getElementById('regCompanyPasswordConfirm').value;
-            const msgDiv = document.getElementById('registerCompanyMessage');
-        
-            if (!company_name || !username || !password) {
-                msgDiv.innerText = 'Заполните все поля';
-                return;
-            }
-            if (password !== confirm) {
-                msgDiv.innerText = 'Пароли не совпадают';
-                return;
-            }
-            if (password.length < 4) {
-                msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
-                return;
-            }
-        
-            msgDiv.innerText = 'Регистрация...';
-            msgDiv.style.color = 'blue';
-        
-            try {
-                const response = await fetch(`${API_URL}/register_company?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&company_name=${encodeURIComponent(company_name)}`, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    msgDiv.innerText = 'Организация зарегистрирована! Теперь войдите.';
-                    msgDiv.style.color = 'green';
-                    // Очищаем поля
-                    document.getElementById('regCompanyName').value = '';
-                    document.getElementById('regCompanyUsername').value = '';
-                    document.getElementById('regCompanyPassword').value = '';
-                    document.getElementById('regCompanyPasswordConfirm').value = '';
-                    // Переключаемся на форму входа через 2 секунды
-                    setTimeout(() => {
-                        document.getElementById('registerCompanyForm').style.display = 'none';
-                        document.getElementById('loginForm').style.display = 'block';
-                        msgDiv.innerText = '';
-                    }, 2000);
-                } else {
-                    msgDiv.innerText = data.detail || 'Ошибка регистрации';
-                    msgDiv.style.color = 'red';
-                }
-            } catch (err) {
-                msgDiv.innerText = 'Ошибка соединения';
-                msgDiv.style.color = 'red';
-            }
-        });
-        
         async function loadDepartments() {
             try {
                 const response = await fetchWithAuth(`${API_URL}/departments`);
@@ -652,10 +662,16 @@
                     }
                 });
 
+                document.getElementById('totalEmployees').innerText = dashboard.total_employees || 0;
+                document.getElementById('juniorCount').innerText = dashboard.grades_count.Junior || 0;
+                document.getElementById('middleCount').innerText = dashboard.grades_count.Middle || 0;
+                document.getElementById('seniorCount').innerText = dashboard.grades_count.Senior || 0;
+                document.getElementById('avgScore').innerText = dashboard.avg_score?.toFixed(2) || '0.00';
+
                 const hipoContainer = document.getElementById('hipoContainer');
                 if (dashboard.hipo_employees && dashboard.hipo_employees.length > 0) {
                     hipoContainer.innerHTML = dashboard.hipo_employees.map(h => `
-                        <div class="hipo-card">
+                        <div class="hipo-card" onclick="viewEmployee(${h.id})">
                             <strong>⭐ ${h.name}</strong><br>
                             ${h.position || '—'}<br>
                             Балл: ${h.score} | Грейд: ${h.grade}
@@ -670,82 +686,83 @@
             }
         }
 
-function sortEmployees(columnIndex) {
-    if (currentSortColumn === columnIndex) {
-        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        currentSortColumn = columnIndex;
-        currentSortDirection = 'asc';
-    }
-    const sorted = [...currentEmployeesData];
-    sorted.sort((a, b) => {
-        let aVal, bVal;
-        switch (columnIndex) {
-            case 0: aVal = a.id; bVal = b.id; break;
-            case 1: aVal = a.name; bVal = b.name; break;
-            case 2: aVal = a.position; bVal = b.position; break;
-            case 3: aVal = a.grade_result.grade; bVal = b.grade_result.grade; break;
-            case 4: aVal = a.formal_grade || ''; bVal = b.formal_grade || ''; break;
-            case 5: aVal = a.grade_result.total_score; bVal = b.grade_result.total_score; break;
-            case 6: aVal = a.metrics.tasks_completed; bVal = b.metrics.tasks_completed; break;
-            case 7: aVal = a.metrics.deadlines_met; bVal = b.metrics.deadlines_met; break;
-            case 8: aVal = a.recommendation || ''; bVal = b.recommendation || ''; break;
-            default: return 0;
+        function sortEmployees(columnIndex) {
+            if (currentSortColumn === columnIndex) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = columnIndex;
+                currentSortDirection = 'asc';
+            }
+            const sorted = [...currentEmployeesData];
+            sorted.sort((a, b) => {
+                let aVal, bVal;
+                switch (columnIndex) {
+                    case 0: aVal = a.id; bVal = b.id; break;
+                    case 1: aVal = a.name; bVal = b.name; break;
+                    case 2: aVal = a.position; bVal = b.position; break;
+                    case 3: aVal = a.grade_result.grade; bVal = b.grade_result.grade; break;
+                    case 4: aVal = a.formal_grade || ''; bVal = b.formal_grade || ''; break;
+                    case 5: aVal = a.grade_result.total_score; bVal = b.grade_result.total_score; break;
+                    case 6: aVal = a.metrics.tasks_completed; bVal = b.metrics.tasks_completed; break;
+                    case 7: aVal = a.metrics.deadlines_met; bVal = b.metrics.deadlines_met; break;
+                    case 8: aVal = a.recommendation || ''; bVal = b.recommendation || ''; break;
+                    default: return 0;
+                }
+                if (typeof aVal === 'number') {
+                    return currentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+                } else {
+                    const comparison = String(aVal).localeCompare(String(bVal));
+                    return currentSortDirection === 'asc' ? comparison : -comparison;
+                }
+            });
+            renderEmployeesTable(sorted);
         }
-        if (typeof aVal === 'number') {
-            return currentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
-        } else {
-            const comparison = String(aVal).localeCompare(String(bVal));
-            return currentSortDirection === 'asc' ? comparison : -comparison;
+
+        function renderEmployeesTable(employees) {
+            if (employees.length === 0) {
+                document.getElementById('employeesTableContainer').innerHTML = '<p>Нет данных. Загрузите файл с сотрудниками.</p>';
+                return;
+            }
+
+            let html = '<div class="employees-table-wrapper"><table id="employeesTable"><thead><tr>';
+            const headers = ['ID', 'Имя', 'Должность', 'Грейд (реальный)', 'Формальный грейд', 'Балл', 'Задачи', 'Дедлайны', 'Рекомендация', 'Действия'];
+            headers.forEach((header, idx) => {
+                let sortIndicator = '';
+                if (currentSortColumn === idx) {
+                    sortIndicator = currentSortDirection === 'asc' ? ' ▲' : ' ▼';
+                }
+                html += `<th onclick="sortEmployees(${idx})">${header}<i>${sortIndicator}</i></th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            for (const emp of employees) {
+                const grade = emp.grade_result.grade;
+                const gradeClass = `grade-${grade.toLowerCase()}`;
+                const recommendation = emp.recommendation || '';
+                let recClass = '';
+                if (recommendation === 'Повысить') recClass = 'up';
+                else if (recommendation === 'Понизить') recClass = 'down';
+                else recClass = 'keep';
+
+                const escapedName = emp.name.replace(/'/g, "\\'");
+
+                html += '<tr>';
+                html += '<td>' + emp.id + '</td>';
+                html += '<td>' + emp.name + '</td>';
+                html += '<td>' + emp.position + '</td>';
+                html += '<td class="' + gradeClass + '">' + grade + '</td>';
+                html += '<td>' + (emp.formal_grade || '—') + '</td>';
+                html += '<td>' + emp.grade_result.total_score + '</td>';
+                html += '<td>' + emp.metrics.tasks_completed + '</td>';
+                html += '<td>' + emp.metrics.deadlines_met + '%</td>';
+                html += `<td><span class="recommendation-${recClass}">${recommendation}</span></td>`;
+                html += '<td><button onclick="viewEmployee(' + emp.id + ')">👤 Профиль</button> <button onclick="viewGapAnalysis(' + emp.id + ', \'' + escapedName + '\')">📊 GAP-анализ</button></td>';
+                html += '</tr>';
+            }
+            html += '</tbody></table></div>';
+            document.getElementById('employeesTableContainer').innerHTML = html;
         }
-    });
-    renderEmployeesTable(sorted);
-}
 
-function renderEmployeesTable(employees) {
-    if (employees.length === 0) {
-        document.getElementById('employeesTableContainer').innerHTML = '<p>Нет данных. Загрузите файл с сотрудниками.</p>';
-        return;
-    }
-
-    let html = '<div class="employees-table-wrapper"><table id="employeesTable"><thead><tr>';
-    const headers = ['ID', 'Имя', 'Должность', 'Грейд (реальный)', 'Формальный грейд', 'Балл', 'Задачи', 'Дедлайны', 'Рекомендация', 'Действия'];
-    headers.forEach((header, idx) => {
-        let sortIndicator = '';
-        if (currentSortColumn === idx) {
-            sortIndicator = currentSortDirection === 'asc' ? ' ▲' : ' ▼';
-        }
-        html += `<th onclick="sortEmployees(${idx})">${header}<i>${sortIndicator}</i></th>`;
-    });
-    html += '</tr></thead><tbody>';
-
-    for (const emp of employees) {
-        const grade = emp.grade_result.grade;
-        const gradeClass = `grade-${grade.toLowerCase()}`;
-        const recommendation = emp.recommendation || '';
-        let recClass = '';
-        if (recommendation === 'Повысить') recClass = 'up';
-        else if (recommendation === 'Понизить') recClass = 'down';
-        else recClass = 'keep';
-
-        const escapedName = emp.name.replace(/'/g, "\\'");
-
-        html += '<tr>';
-        html += '<td>' + emp.id + '</td>';
-        html += '<td>' + emp.name + '</td>';
-        html += '<td>' + emp.position + '</td>';
-        html += '<td class="' + gradeClass + '">' + grade + '</td>';
-        html += '<td>' + (emp.formal_grade || '—') + '</td>';   // Формальный грейд
-        html += '<td>' + emp.grade_result.total_score + '</td>';
-        html += '<td>' + emp.metrics.tasks_completed + '</td>';
-        html += '<td>' + emp.metrics.deadlines_met + '%</td>';
-        html += '<td class="recommendation-' + recClass + '">' + recommendation + '</td>';
-        html += '<td><button onclick="viewEmployee(' + emp.id + ')">👤 Профиль</button> <button onclick="viewGapAnalysis(' + emp.id + ', \'' + escapedName + '\')">📊 GAP-анализ</button></td>';
-        html += '</tr>';
-    }
-    html += '</tbody></table></div>';
-    document.getElementById('employeesTableContainer').innerHTML = html;
-}
         async function loadEmployees() {
             try {
                 const department = document.getElementById('departmentFilter').value;
@@ -879,34 +896,34 @@ function renderEmployeesTable(employees) {
                 loadDepartments();
             } catch (error) {
                 statusSpan.innerHTML = `❌ Ошибка: ${error.message}`;
-                     }
-                                    }
-        // ==================== Полная очистка БД (только admin) ====================
-async function fullClearDatabase() {
-    if (!confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕХ сотрудников и их учётные записи. Вы уверены?')) return;
-    const statusSpan = document.getElementById('uploadStatus');
-    statusSpan.innerHTML = '⏳ Полная очистка...';
-    statusSpan.style.color = 'blue';
-    try {
-        const response = await fetchWithAuth(`${API_URL}/full-clear`, { method: 'DELETE' });
-        const result = await response.json();
-        if (response.ok) {
-            statusSpan.innerHTML = `✅ ${result.message}`;
-            statusSpan.style.color = 'green';
-            document.getElementById('uploadResult').style.display = 'none';
-            document.getElementById('exportAccountsBtn').style.display = 'none';
-            loadDashboard();
-            loadEmployees();
-            loadDepartments();
-        } else {
-            statusSpan.innerHTML = `❌ ${result.detail || 'Ошибка'}`;
-            statusSpan.style.color = 'red';
+            }
         }
-    } catch (error) {
-        statusSpan.innerHTML = `❌ Ошибка: ${error.message}`;
-        statusSpan.style.color = 'red';
-    }
-}
+
+        async function fullClearDatabase() {
+            if (!confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕХ сотрудников и их учётные записи. Вы уверены?')) return;
+            const statusSpan = document.getElementById('uploadStatus');
+            statusSpan.innerHTML = '⏳ Полная очистка...';
+            statusSpan.style.color = 'blue';
+            try {
+                const response = await fetchWithAuth(`${API_URL}/full-clear`, { method: 'DELETE' });
+                const result = await response.json();
+                if (response.ok) {
+                    statusSpan.innerHTML = `✅ ${result.message}`;
+                    statusSpan.style.color = 'green';
+                    document.getElementById('uploadResult').style.display = 'none';
+                    document.getElementById('exportAccountsBtn').style.display = 'none';
+                    loadDashboard();
+                    loadEmployees();
+                    loadDepartments();
+                } else {
+                    statusSpan.innerHTML = `❌ ${result.detail || 'Ошибка'}`;
+                    statusSpan.style.color = 'red';
+                }
+            } catch (error) {
+                statusSpan.innerHTML = `❌ Ошибка: ${error.message}`;
+                statusSpan.style.color = 'red';
+            }
+        }
 
         function exportExcel() {
             window.location.href = `${API_URL}/export/excel?token=${token}`;
@@ -929,6 +946,7 @@ async function fullClearDatabase() {
         document.getElementById('exportAccountsBtn').addEventListener('click', () => {
             window.location.href = `${API_URL}/export/accounts?token=${token}`;
         });
+        document.getElementById('fullClearDbBtn').addEventListener('click', fullClearDatabase);
 
         window.onclick = function(event) {
             const modal = document.getElementById('gapModal');
@@ -959,6 +977,125 @@ async function fullClearDatabase() {
             }
         });
 
+        document.getElementById('showRegisterBtn').addEventListener('click', () => {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        });
+
+        document.getElementById('showLoginBtn').addEventListener('click', () => {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerMessage').innerText = '';
+        });
+
+        document.getElementById('showRegisterCompanyBtn').addEventListener('click', () => {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerCompanyForm').style.display = 'block';
+        });
+
+        document.getElementById('showLoginFromRegCompanyBtn').addEventListener('click', () => {
+            document.getElementById('registerCompanyForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        });
+
+        document.getElementById('registerCompanyBtn').addEventListener('click', async () => {
+            const company_name = document.getElementById('regCompanyName').value.trim();
+            const username = document.getElementById('regCompanyUsername').value.trim();
+            const password = document.getElementById('regCompanyPassword').value;
+            const confirm = document.getElementById('regCompanyPasswordConfirm').value;
+            const msgDiv = document.getElementById('registerCompanyMessage');
+
+            if (!company_name || !username || !password) {
+                msgDiv.innerText = 'Заполните все поля';
+                return;
+            }
+            if (password !== confirm) {
+                msgDiv.innerText = 'Пароли не совпадают';
+                return;
+            }
+            if (password.length < 4) {
+                msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
+                return;
+            }
+
+            msgDiv.innerText = 'Регистрация...';
+            msgDiv.style.color = 'blue';
+
+            try {
+                const response = await fetch(`${API_URL}/register_company?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&company_name=${encodeURIComponent(company_name)}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    msgDiv.innerText = 'Организация зарегистрирована! Теперь войдите.';
+                    msgDiv.style.color = 'green';
+                    document.getElementById('regCompanyName').value = '';
+                    document.getElementById('regCompanyUsername').value = '';
+                    document.getElementById('regCompanyPassword').value = '';
+                    document.getElementById('regCompanyPasswordConfirm').value = '';
+                    setTimeout(() => {
+                        document.getElementById('registerCompanyForm').style.display = 'none';
+                        document.getElementById('loginForm').style.display = 'block';
+                        msgDiv.innerText = '';
+                    }, 2000);
+                } else {
+                    msgDiv.innerText = data.detail || 'Ошибка регистрации';
+                    msgDiv.style.color = 'red';
+                }
+            } catch (err) {
+                msgDiv.innerText = 'Ошибка соединения';
+                msgDiv.style.color = 'red';
+            }
+        });
+
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regPasswordConfirm').value;
+            const msgDiv = document.getElementById('registerMessage');
+
+            if (!username || !password) {
+                msgDiv.innerText = 'Заполните все поля';
+                return;
+            }
+            if (password !== confirm) {
+                msgDiv.innerText = 'Пароли не совпадают';
+                return;
+            }
+            if (password.length < 4) {
+                msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
+                return;
+            }
+
+            msgDiv.innerText = 'Регистрация...';
+            msgDiv.style.color = 'blue';
+
+            try {
+                const response = await fetch(`${API_URL}/register?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&role=hr`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    msgDiv.innerText = 'Регистрация успешна! Теперь войдите.';
+                    msgDiv.style.color = 'green';
+                    document.getElementById('regUsername').value = '';
+                    document.getElementById('regPassword').value = '';
+                    document.getElementById('regPasswordConfirm').value = '';
+                    setTimeout(() => {
+                        document.getElementById('registerForm').style.display = 'none';
+                        document.getElementById('loginForm').style.display = 'block';
+                        msgDiv.innerText = '';
+                    }, 2000);
+                } else {
+                    msgDiv.innerText = data.detail || 'Ошибка регистрации';
+                    msgDiv.style.color = 'red';
+                }
+            } catch (err) {
+                msgDiv.innerText = 'Ошибка соединения';
+                msgDiv.style.color = 'red';
+            }
+        });
+
         if (!token) {
             document.getElementById('loginForm').style.display = 'block';
             document.getElementById('appContent').style.display = 'none';
@@ -974,134 +1111,19 @@ async function fullClearDatabase() {
                 loadEmployees();
             }
         }
-                document.getElementById('fullClearDbBtn').addEventListener('click', fullClearDatabase);
 
-        // Переключение на форму регистрации
-document.getElementById('showRegisterBtn').addEventListener('click', () => {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerForm').style.display = 'block';
-});
-
-// Переключение на форму входа
-document.getElementById('showLoginBtn').addEventListener('click', () => {
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('registerMessage').innerText = '';
-});
-// Переключение на форму регистрации компании
-document.getElementById('showRegisterCompanyBtn').addEventListener('click', () => {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('registerCompanyForm').style.display = 'block';
-});
-
-// Переключение обратно на форму входа
-document.getElementById('showLoginFromRegCompanyBtn').addEventListener('click', () => {
-    document.getElementById('registerCompanyForm').style.display = 'none';
-    document.getElementById('loginForm').style.display = 'block';
-});
-
-// Регистрация компании
-document.getElementById('registerCompanyBtn').addEventListener('click', async () => {
-    const company_name = document.getElementById('regCompanyName').value.trim();
-    const username = document.getElementById('regUsername').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const confirm = document.getElementById('regPasswordConfirm').value;
-    const msgDiv = document.getElementById('registerCompanyMessage');
-
-    if (!company_name || !username || !password) {
-        msgDiv.innerText = 'Заполните все поля';
-        return;
-    }
-    if (password !== confirm) {
-        msgDiv.innerText = 'Пароли не совпадают';
-        return;
-    }
-    if (password.length < 4) {
-        msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
-        return;
-    }
-
-    msgDiv.innerText = 'Регистрация...';
-    msgDiv.style.color = 'blue';
-
-    try {
-        const response = await fetch(`${API_URL}/register_company?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&company_name=${encodeURIComponent(company_name)}`, {
-            method: 'POST'
+        // Плавающая кнопка "Наверх"
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopBtn.style.display = 'flex';
+            } else {
+                backToTopBtn.style.display = 'none';
+            }
         });
-        const data = await response.json();
-        if (response.ok) {
-            msgDiv.innerText = 'Организация зарегистрирована! Теперь войдите.';
-            msgDiv.style.color = 'green';
-            // Очищаем поля
-            document.getElementById('regCompanyName').value = '';
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regPasswordConfirm').value = '';
-            // Переключаемся на форму входа через 2 секунды
-            setTimeout(() => {
-                document.getElementById('registerCompanyForm').style.display = 'none';
-                document.getElementById('loginForm').style.display = 'block';
-                msgDiv.innerText = '';
-            }, 2000);
-        } else {
-            msgDiv.innerText = data.detail || 'Ошибка регистрации';
-            msgDiv.style.color = 'red';
-        }
-    } catch (err) {
-        msgDiv.innerText = 'Ошибка соединения';
-        msgDiv.style.color = 'red';
-    }
-});
-// Регистрация
-document.getElementById('registerBtn').addEventListener('click', async () => {
-    const username = document.getElementById('regUsername').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const confirm = document.getElementById('regPasswordConfirm').value;
-    const msgDiv = document.getElementById('registerMessage');
-
-    if (!username || !password) {
-        msgDiv.innerText = 'Заполните все поля';
-        return;
-    }
-    if (password !== confirm) {
-        msgDiv.innerText = 'Пароли не совпадают';
-        return;
-    }
-    if (password.length < 4) {
-        msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
-        return;
-    }
-
-    msgDiv.innerText = 'Регистрация...';
-    msgDiv.style.color = 'blue';
-
-    try {
-        const response = await fetch(`${API_URL}/register?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&role=hr`, {
-            method: 'POST'
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-        const data = await response.json();
-        if (response.ok) {
-            msgDiv.innerText = 'Регистрация успешна! Теперь войдите.';
-            msgDiv.style.color = 'green';
-            // Очистить поля регистрации
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regPasswordConfirm').value = '';
-            // Переключиться на форму входа через 2 секунды
-            setTimeout(() => {
-                document.getElementById('registerForm').style.display = 'none';
-                document.getElementById('loginForm').style.display = 'block';
-                msgDiv.innerText = '';
-            }, 2000);
-        } else {
-            msgDiv.innerText = data.detail || 'Ошибка регистрации';
-            msgDiv.style.color = 'red';
-        }
-    } catch (err) {
-        msgDiv.innerText = 'Ошибка соединения';
-        msgDiv.style.color = 'red';
-    }
-});
     </script>
 </body>
 </html>
