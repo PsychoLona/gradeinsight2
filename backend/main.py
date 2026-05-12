@@ -539,6 +539,7 @@ async def upload_employees(
                 department=row.get('department', ''),
                 experience=int(row.get('experience', 0)),
                 formal_grade=formal_grade,
+                company_id=current_user.company_id,
                 photo_url=row.get('photo_url', '')
             )
             db.add(emp)
