@@ -40,10 +40,12 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    role = Column(String, default="employee")  # admin, hr, employee
+    role = Column(String, default="employee")  # super_admin, admin, hr, employee
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=True)  # NULL для super_admin
     employee_id = Column(Integer, ForeignKey("employees.id"), nullable=True)
     is_active = Column(Boolean, default=True)
 
+    company = relationship("Company", back_populates="users")
     employee = relationship("Employee", back_populates="user")
 
     def verify_password(self, password: str) -> bool:
@@ -52,7 +54,7 @@ class User(Base):
     @staticmethod
     def hash_password(password: str) -> str:
         return hash_password(password)
-
+        
 # Модель сотрудника
 class Employee(Base):
     __tablename__ = "employees"
@@ -182,49 +184,73 @@ def init_db():
                 Role(name="Team Lead", description="Управляет командой разработки"),
             ])
 
-        # Создаём тестовых пользователей, если их нет
+        # Создаём пользователей, если их нет (с поддержкой company_id)
         if db.query(User).count() == 0:
-            # Администратор
+            # 1. Системный администратор (super_admin) — не привязан к компании
+            super_admin = User(
+                username="super_admin",
+                hashed_password=User.hash_password("admin123"),
+                role="super_admin",
+                company_id=None,
+                is_active=True
+            )
+            db.add(super_admin)
+
+            # 2. Создаём тестовую компанию
+            test_company = Company(
+                name="Тестовая компания",
+                is_active=True
+            )
+            db.add(test_company)
+            db.flush()  # получаем id компании
+
+            # 3. Администратор компании (admin) — привязан к компании
             admin = User(
                 username="admin",
                 hashed_password=User.hash_password("admin123"),
                 role="admin",
+                company_id=test_company.id,
                 is_active=True
             )
             db.add(admin)
 
-            # HR-пользователь
+            # 4. HR-пользователь (hr) — привязан к компании
             hr_user = User(
                 username="hr_user",
                 hashed_password=User.hash_password("hr123"),
                 role="hr",
+                company_id=test_company.id,
                 is_active=True
             )
             db.add(hr_user)
 
-            # Сотрудник для employee_user
+            # 5. Создаём тестового сотрудника
             test_emp = Employee(
                 name="Тестовый Сотрудник",
                 position="Разработчик",
-                experience=2
+                experience=2,
+                company_id=test_company.id
             )
             db.add(test_emp)
-            db.flush()  # получаем id
+            db.flush()
 
+            # 6. Сотрудник (employee) — привязан к компании и к сотруднику
             emp_user = User(
                 username="employee_user",
                 hashed_password=User.hash_password("emp123"),
                 role="employee",
+                company_id=test_company.id,
                 employee_id=test_emp.id,
                 is_active=True
             )
             db.add(emp_user)
 
             db.commit()
-            print("Созданы тестовые пользователи:")
-            print("  admin / admin123 (admin)")
-            print("  hr_user / hr123 (hr)")
-            print("  employee_user / emp123 (employee, привязан к тестовому сотруднику)")
+            print("Созданы пользователи:")
+            print("  super_admin / admin123 (системный администратор, видит всё)")
+            print("  admin / admin123 (администратор тестовой компании)")
+            print("  hr_user / hr123 (HR тестовой компании)")
+            print("  employee_user / emp123 (сотрудник тестовой компании)")
 
     finally:
         db.close()
