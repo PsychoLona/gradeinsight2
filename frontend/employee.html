@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>GradeInsight — Профиль сотрудника</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 16px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 16px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .employee-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .employee-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .employee-position {
+            font-size: 1rem;
+            color: #718096;
+        }
+
+        .employee-details {
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        .grade-badge {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .profile-card {
+            background: #f7fafc;
+            border-radius: 20px;
+            padding: 16px;
+            border: 1px solid #edf2f7;
+        }
+
+        .full-width-card {
+            grid-column: span 2;
+        }
+
+        .profile-card h3 {
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .metrics-edit {
+            background: #f0f4ff;
+            padding: 16px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metrics-edit input {
+            width: 100px;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2d3748;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .actions-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 8px;
+        }
+
+        .actions-list .positive { color: #48bb78; font-weight: bold; }
+        .actions-list .negative { color: #f56565; font-weight: bold; }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .ipr-step {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 8px;
+        }
+        .step-done {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            .employee-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .grade-badge {
+                align-self: flex-start;
+            }
+
+            .profile-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .full-width-card {
+                grid-column: span 1;
+            }
+
+            .profile-card {
+                padding: 12px;
+            }
+
+            .metrics-edit label {
+                display: block;
+                margin-bottom: 8px;
+            }
+
+            .metrics-edit input {
+                width: 100%;
+                margin: 4px 0;
+            }
+
+            .logout-btn {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 16px;
+                width: 100%;
+                text-align: center;
+            }
+
+            .back-link {
+                display: block;
+                margin-bottom: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .employee-name {
+                font-size: 1.3rem;
+            }
+            .grade-badge {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="logoutBtn" class="logout-btn">Выйти</button>
+        <div id="backLinkContainer">
+            <a href="standalone.html" class="back-link">← Назад к дашборду</a>
+        </div>
+        <div id="employeeContent">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        const urlParams = new URLSearchParams(window.location.search);
+        const empId = urlParams.get('id');
+        const STORAGE_KEY = `ipr_${empId}`;
+        let currentIprSteps = [];
+
+        function getToken() { return localStorage.getItem('token'); }
+
+        async function fetchWithAuth(url, options = {}) {
+            const token = getToken();
+            if (!token) { window.location.href = 'standalone.html'; throw new Error('No token'); }
+            const headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.removeItem('token'); localStorage.removeItem('role'); localStorage.removeItem('employee_id');
+                window.location.href = 'standalone.html';
+                throw new Error('Unauthorized');
+            }
+            return response;
+        }
+
+        if (!getToken()) window.location.href = 'standalone.html';
+
+        const role = localStorage.getItem('role');
+        if (role === 'employee') {
+            const backLinkContainer = document.getElementById('backLinkContainer');
+            if (backLinkContainer) backLinkContainer.style.display = 'none';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token'); localStorage.removeItem('role'); localStorage.removeItem('employee_id');
+            window.location.href = 'standalone.html';
+        });
+
+        function showToast(message, duration = 2000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, duration);
+        }
+
+        function saveIprSteps(steps) { localStorage.setItem(STORAGE_KEY, JSON.stringify(steps)); }
+        function loadIprSteps() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            currentIprSteps = saved ? JSON.parse(saved) : [];
+        }
+
+        async function loadEmployee() {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/employees/${empId}`);
+                if (!response.ok) throw new Error('Сотрудник не найден');
+                const data = await response.json();
+                const gapRes = await fetchWithAuth(`${API_URL}/employees/${empId}/gap_analysis`);
+                const gapData = await gapRes.json();
+                renderEmployee(data, gapData);
+            } catch (error) {
+                document.getElementById('employeeContent').innerHTML = `<p style="color:red;">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        async function loadHistory() {
+            try {
+                const res = await fetchWithAuth(`${API_URL}/employees/${empId}/history`);
+                if (!res.ok) return;
+                const history = await res.json();
+                if (!history.length) return;
+                const dates = history.map(h => new Date(h.date).toLocaleDateString());
+                const scores = history.map(h => h.total_score);
+                const ctx = document.getElementById('historyChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Итоговый балл',
+                            data: scores,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102,126,234,0.1)',
+                            tension: 0.1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: { min: 0, max: 1, title: { display: true, text: 'Балл' } },
+                            x: { title: { display: true, text: 'Дата' } }
+                        }
+                    }
+                });
+            } catch (error) { console.error('Ошибка загрузки истории:', error); }
+        }
+
+        async function loadActions() {
+            try {
+                const res = await fetchWithAuth(`${API_URL}/employees/${empId}/actions`);
+                if (!res.ok) return;
+                const actions = await res.json();
+                if (!actions.length) {
+                    document.getElementById('actionsList').innerHTML = '<p>Пока нет записей. Загрузите код или обновите метрики.</p>';
+                    return;
+                }
+                let html = '<ul>';
+                for (const a of actions) {
+                    const date = new Date(a.timestamp).toLocaleString();
+                    const deltaClass = a.delta_score >= 0 ? 'positive' : 'negative';
+                    const deltaSign = a.delta_score >= 0 ? '+' : '';
+                    html += `<li><strong>${date}</strong><br>${a.details}<br><span class="${deltaClass}">Изменение балла: ${deltaSign}${a.delta_score}</span> (новый балл: ${a.new_score})</li>`;
+                }
+                html += '</ul>';
+                document.getElementById('actionsList').innerHTML = html;
+            } catch (err) { console.error('Ошибка загрузки истории изменений:', err); }
+        }
+
+        function generateIprSteps(empData, gaps, nextGrade) {
+            const steps = [];
+            const role = empData.position;
+            for (const gap of gaps) {
+                if (gap.status === 'need_improvement' && gap.gap > 0.1) {
+                    let step = '';
+                    if (gap.competency === 'tasks') step = `Увеличить количество задач до ${Math.ceil(gap.target * 100)}% от нормы.`;
+                    else if (gap.competency === 'deadlines') step = `Повысить соблюдение дедлайнов до ${Math.ceil(gap.target * 100)}%.`;
+                    else if (gap.competency === 'code_quality') step = `Улучшить качество кода до ${Math.ceil(gap.target * 100)}%. Пройти курсы.`;
+                    else if (gap.competency === 'communication') step = `Развить коммуникативные навыки до ${Math.ceil(gap.target * 100)}%.`;
+                    if (step) steps.push({ title: step, due: `3 месяца`, completed: false });
+                }
+            }
+            if (nextGrade && empData.grade_result.grade !== nextGrade) {
+                steps.push({ title: `Подготовка к переходу на уровень ${nextGrade}.`, due: `6 месяцев`, completed: false });
+            }
+            if (role === 'Разработчик') {
+                steps.push({ title: 'Освоить новый фреймворк (FastAPI, React).', due: '3 месяца', completed: false });
+                steps.push({ title: 'Провести технический доклад.', due: '4 месяца', completed: false });
+            } else if (role === 'Аналитик') {
+                steps.push({ title: 'Пройти курс по продвинутому SQL и BI.', due: '3 месяца', completed: false });
+                steps.push({ title: 'Написать статью на внутренний блог.', due: '5 месяцев', completed: false });
+            } else if (role === 'Team Lead') {
+                steps.push({ title: 'Пройти курс по управлению проектами (Scrum Master).', due: '4 месяца', completed: false });
+                steps.push({ title: 'Провести ретроспективу команды.', due: '2 месяца', completed: false });
+            }
+            if (steps.length === 0) steps.push({ title: 'Отличные результаты! Поддерживайте уровень.', due: 'постоянно', completed: false });
+            return steps;
+        }
+
+        function renderIpr(steps) {
+            if (!steps.length) {
+                document.getElementById('iprList').innerHTML = '<li>План развития будет сформирован после анализа данных.</li>';
+                return;
+            }
+            let html = '';
+            steps.forEach((step, idx) => {
+                const completedClass = step.completed ? 'step-done' : '';
+                html += `
+                    <div class="ipr-step">
+                        <input type="checkbox" data-idx="${idx}" ${step.completed ? 'checked' : ''}>
+                        <span class="${completedClass}">${step.title} <span class="step-due">(срок: ${step.due})</span></span>
+                    </div>
+                `;
+            });
+            document.getElementById('iprList').innerHTML = html;
+            document.querySelectorAll('.ipr-step input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const idx = parseInt(e.target.dataset.idx);
+                    if (!isNaN(idx) && currentIprSteps[idx]) {
+                        currentIprSteps[idx].completed = e.target.checked;
+                        saveIprSteps(currentIprSteps);
+                        renderIpr(currentIprSteps);
+                    }
+                });
+            });
+        }
+
+        function renderEmployee(data, gapData) {
+            const emp = data;
+            const metrics = emp.metrics;
+            const gradeResult = emp.grade_result;
+            const normalized = gradeResult.normalized_metrics;
+            let nextGrade = '';
+            if (gradeResult.grade === 'Junior') nextGrade = 'Middle';
+            else if (gradeResult.grade === 'Middle') nextGrade = 'Senior';
+            else nextGrade = 'Senior+';
+            const gaps = gapData.gaps || [];
+            const iprSteps = generateIprSteps(emp, gaps, nextGrade);
+            loadIprSteps();
+            if (currentIprSteps.length === iprSteps.length) {
+                for (let i = 0; i < iprSteps.length; i++) if (currentIprSteps[i]) iprSteps[i].completed = currentIprSteps[i].completed;
+            }
+            currentIprSteps = iprSteps;
+            saveIprSteps(currentIprSteps);
+
+            const html = `
+                <div class="employee-header">
+                    <div>
+                        <div class="employee-name">${emp.name}</div>
+                        <div class="employee-position">${emp.position}</div>
+                        <div class="employee-details">Стаж: ${emp.experience || 0} лет</div>
+                    </div>
+                    <div class="grade-badge">${gradeResult.grade} (${gradeResult.total_score})</div>
+                </div>
+
+                <div class="metrics-edit">
+                    <h3>📊 Редактирование метрик</h3>
+                    <label>Задач выполнено: <input type="number" id="tasksInput" value="${metrics.tasks_completed}"></label>
+                    <label>Соблюдение дедлайнов (%): <input type="number" id="deadlinesInput" step="1" min="0" max="100" value="${metrics.deadlines_met}"></label>
+                    <button id="updateMetricsBtn" class="btn">Обновить метрики</button>
+                </div>
+
+                <div class="profile-grid">
+                    <div class="profile-card">
+                        <h3>📈 Текущие метрики</h3>
+                        <div class="metric-value" style="font-size:28px;">${metrics.tasks_completed}</div>
+                        <div>Задач выполнено</div>
+                        <div class="metric-value" style="font-size:28px;">${metrics.deadlines_met}%</div>
+                        <div>Соблюдение дедлайнов</div>
+                        <div class="metric-value" style="font-size:28px;">${metrics.code_quality_score}</div>
+                        <div>Качество кода</div>
+                        <div class="metric-value" style="font-size:28px;">${metrics.communication_score}</div>
+                        <div>Коммуникации</div>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3>📊 Лепестковая диаграмма компетенций</h3>
+                        <canvas id="radarChart" width="300" height="300"></canvas>
+                    </div>
+
+                    <div class="profile-card full-width-card">
+                        <h3>📈 Динамика баллов</h3>
+                        <canvas id="historyChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3>📝 История изменений</h3>
+                        <div class="actions-container">
+                            <div id="actionsList" class="actions-list"></div>
+                        </div>
+                    </div>
+
+                    <div class="profile-card">
+                        <h3>📈 Рекомендации по развитию</h3>
+                        <ul id="recommendationsList"></ul>
+                    </div>
+
+                    <div class="profile-card full-width-card">
+                        <h3>📋 Индивидуальный план развития (ИПР)</h3>
+                        <div id="iprList"></div>
+                        <div style="margin-top:15px;">
+                            <button id="resetIprBtn" class="btn">Сбросить прогресс ИПР</button>
+                        </div>
+                    </div>
+
+                    <div class="profile-card full-width-card">
+                        <h3>📄 Анализ кода</h3>
+                        <input type="file" id="codeFile" accept=".py,.txt">
+                        <button id="uploadCodeBtn" class="btn">Загрузить и проанализировать</button>
+                        <h3>💬 Анализ комментариев</h3>
+                        <input type="file" id="commentsFile" accept=".txt">
+                        <button id="uploadCommentsBtn" class="btn">Загрузить и проанализировать</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('employeeContent').innerHTML = html;
+
+            // Лепестковая диаграмма
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Задачи', 'Дедлайны', 'Качество кода', 'Коммуникации'],
+                    datasets: [{
+                        label: 'Уровень компетенции',
+                        data: [normalized.tasks, normalized.deadlines, normalized.code_quality, normalized.communication],
+                        backgroundColor: 'rgba(102,126,234,0.2)',
+                        borderColor: '#667eea',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#fff',
+                        pointRadius: 5
+                    }]
+                },
+                options: { scales: { r: { beginAtZero: true, max: 1, ticks: { stepSize: 0.2 } } } }
+            });
+
+            // Рекомендации
+            const recommendations = [];
+            if (normalized.tasks < 0.5) recommendations.push('Увеличить количество выполняемых задач');
+            if (normalized.deadlines < 0.6) recommendations.push('Улучшить соблюдение сроков (использовать тайм-менеджмент)');
+            if (normalized.code_quality < 0.6) recommendations.push('Повысить качество кода: пройти курсы по рефакторингу');
+            if (normalized.communication < 0.6) recommendations.push('Развить коммуникативные навыки');
+            if (recommendations.length === 0) recommendations.push('Отличная работа! Рекомендуется рассмотреть повышение грейда');
+            document.getElementById('recommendationsList').innerHTML = recommendations.map(r => `<li>${r}</li>`).join('');
+
+            renderIpr(currentIprSteps);
+            loadHistory();
+            loadActions();
+
+            document.getElementById('updateMetricsBtn').addEventListener('click', async () => {
+                const tasks = parseInt(document.getElementById('tasksInput').value, 10) || 0;
+                const deadlines = parseFloat(document.getElementById('deadlinesInput').value) || 0;
+                try {
+                    const res = await fetchWithAuth(`${API_URL}/employees/${empId}/metrics?tasks_completed=${tasks}&deadlines_met=${deadlines}`, { method: 'PUT' });
+                    if (res.ok) { showToast('Метрики обновлены'); loadEmployee(); } else showToast('Ошибка обновления');
+                } catch (err) { showToast('Ошибка: ' + err.message); }
+            });
+
+            document.getElementById('uploadCodeBtn').addEventListener('click', async () => {
+                const file = document.getElementById('codeFile').files[0];
+                if (!file) return showToast('Выберите файл с кодом');
+                const formData = new FormData(); formData.append('file', file);
+                try {
+                    const res = await fetchWithAuth(`${API_URL}/upload/code/${empId}`, { method: 'POST', body: formData });
+                    if (res.ok) { const result = await res.json(); showToast(`Качество кода: ${result.code_quality_score}`); loadEmployee(); }
+                    else showToast('Ошибка загрузки');
+                } catch (err) { showToast('Ошибка: ' + err.message); }
+            });
+
+            document.getElementById('uploadCommentsBtn').addEventListener('click', async () => {
+                const file = document.getElementById('commentsFile').files[0];
+                if (!file) return showToast('Выберите файл с комментариями');
+                const formData = new FormData(); formData.append('file', file);
+                try {
+                    const res = await fetchWithAuth(`${API_URL}/upload/comments/${empId}`, { method: 'POST', body: formData });
+                    if (res.ok) { const result = await res.json(); showToast(`Оценка коммуникаций: ${result.communication_score}`); loadEmployee(); }
+                    else showToast('Ошибка загрузки');
+                } catch (err) { showToast('Ошибка: ' + err.message); }
+            });
+
+            document.getElementById('resetIprBtn').addEventListener('click', () => {
+                localStorage.removeItem(STORAGE_KEY);
+                loadEmployee();
+                showToast('Прогресс ИПР сброшен');
+            });
+        }
+
+        if (empId) loadEmployee();
+        else document.getElementById('employeeContent').innerHTML = '<p style="color:red;">Ошибка: не указан ID сотрудника</p>';
+    </script>
+</body>
+</html>

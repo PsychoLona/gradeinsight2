@@ -1,0 +1,39 @@
+{
+  "name": "gradeinsight",
+  "version": "1.0.0",
+  "description": "GradeInsight",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.yourcompany.gradeinsight",
+    "productName": "GradeInsight",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "backend/**/*",
+      "frontend/**/*"
+    ],
+        "asarUnpack": [
+      "backend/**/*",
+      "frontend/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

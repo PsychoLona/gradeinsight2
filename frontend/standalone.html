@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>GradeInsight — Интеллектуальная система грейдирования</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 16px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(2px);
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        h1 {
+            color: #2d3748;
+            margin-bottom: 4px;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+        }
+
+        .subtitle {
+            color: #718096;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border: 1px solid #edf2f7;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        h2 {
+            color: #2d3748;
+            margin: 0 0 16px 0;
+            font-weight: 600;
+            font-size: 1.3rem;
+            border-left: 4px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .chart-container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Таблица с горизонтальной прокруткой */
+        .employees-table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 16px;
+            margin-top: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 600px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+            border-right: 1px solid #edf2f7;
+        }
+
+        th:last-child, td:last-child {
+            border-right: none;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            cursor: pointer;
+            user-select: none;
+            font-size: 0.8rem;
+        }
+
+        th i {
+            margin-left: 5px;
+            font-style: normal;
+            font-size: 0.7rem;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .grade-junior { color: #48bb78; font-weight: bold; }
+        .grade-middle { color: #ed8936; font-weight: bold; }
+        .grade-senior { color: #9f7aea; font-weight: bold; }
+
+        .hipo-card {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+            border-left: 4px solid #ed8936;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 16px;
+            transition: all 0.2s;
+        }
+
+        .upload-area, .filter-area {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .upload-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .upload-area input {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #718096;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 24px;
+            max-width: 90%;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+            color: #a0aec0;
+        }
+
+        .login-container {
+            max-width: 90%;
+            width: 380px;
+            margin: 80px auto;
+            background: white;
+            padding: 24px;
+            border-radius: 28px;
+            text-align: center;
+        }
+
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+        }
+        .link-btn {
+            background: none;
+            color: #667eea;
+            margin-top: 10px;
+            box-shadow: none;
+        }
+        .link-btn:hover {
+            background: none;
+            transform: none;
+            text-decoration: underline;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Адаптивность для мобильных */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 16px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.75rem;
+                margin-bottom: 16px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .full-width {
+                grid-column: span 1;
+            }
+
+            .card {
+                padding: 14px;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 12px;
+            }
+
+            .upload-area {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .upload-area input, .upload-area button, .filter-area select, .filter-area button {
+                width: 100%;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .action-buttons button {
+                width: 100%;
+            }
+
+            .hipo-card {
+                width: 100%;
+                margin: 8px 0;
+            }
+
+            .logout-btn {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 16px;
+                display: inline-block;
+                width: 100%;
+            }
+
+            .employee-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            table {
+                font-size: 0.75rem;
+                min-width: 500px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+            }
+
+            button {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 8px;
+            }
+
+            .container {
+                padding: 12px;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .subtitle {
+                font-size: 0.7rem;
+            }
+
+            table {
+                font-size: 0.7rem;
+                min-width: 450px;
+            }
+        }
+        .recommendation-up { color: #48bb78; font-weight: bold; }
+        .recommendation-down { color: #f56565; font-weight: bold; }
+        .recommendation-keep { color: #718096; }
+    </style>
+</head>
+<body>
+    <div id="loginForm" class="login-container" style="display: none;">
+        <h2>🔐 Вход в систему</h2>
+        <input type="text" id="username" placeholder="Логин">
+        <input type="password" id="password" placeholder="Пароль">
+        <button id="loginBtn">Войти</button>
+        <button id="showRegisterBtn" class="link-btn">Нет аккаунта? Зарегистрироваться</button>
+        <div id="loginMessage" style="color: red; margin-top: 10px;"></div>
+    </div>
+    
+    <div id="registerForm" class="login-container" style="display: none;">
+        <h2>📝 Регистрация руководителя (HR)</h2>
+        <input type="text" id="regUsername" placeholder="Логин">
+        <input type="password" id="regPassword" placeholder="Пароль">
+        <input type="password" id="regPasswordConfirm" placeholder="Повторите пароль">
+        <button id="registerBtn">Зарегистрироваться</button>
+        <button id="showLoginBtn" class="link-btn">Уже есть аккаунт? Войти</button>
+        <div id="registerMessage" style="color: red; margin-top: 10px;"></div>
+    </div>
+
+    <div id="appContent" style="display: none;">
+        <div class="container">
+            <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
+            <h1>📊 GradeInsight</h1>
+            <div class="subtitle">Интеллектуальная система поддержки принятия решений при грейдировании персонала</div>
+
+            <div class="upload-area">
+                <h3 style="margin:0;">📂 Загрузить данные</h3>
+                <input type="file" id="uploadFile" accept=".csv,.xlsx">
+                <button id="uploadBtn">Загрузить</button>
+                <button id="clearDataBtn" class="btn-danger">🗑️ Очистить все данные</button>
+                <button id="exportExcelBtn" class="btn-success">📎 Скачать отчёт (Excel)</button>
+                <button id="exportAccountsBtn" class="btn-success" style="display: none;">📋 Выгрузить учётные записи</button>
+                <span id="uploadStatus" class="status"></span>
+                <button id="fullClearDbBtn" class="btn-danger" style="display: none;">⚠️ Полная очистка БД</button>
+            </div>
+
+            <div id="uploadResult" style="display: none; margin-top: 10px; padding: 10px; background: #e8f4fd; border-radius: 12px;">
+                <h4>📋 Созданные учётные записи</h4>
+                <div id="accountsList" style="font-family: monospace; font-size: 12px;"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="refreshBtn">🔄 Обновить данные</button>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h2>⭐ Сотрудники с высоким потенциалом (HiPo)</h2>
+                    <div id="hipoContainer" class="loading">Загрузка...</div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Распределение по грейдам</h2>
+                    <div class="chart-container">
+                        <canvas id="gradesChart" width="400" height="400"></canvas>
+                    </div>
+                </div>
+
+                <div class="card full-width">
+                    <h2>👥 Сотрудники</h2>
+                    <div class="filter-area" style="margin-bottom: 16px;">
+                        <label>🏢 Отдел: </label>
+                        <select id="departmentFilter">
+                            <option value="">Все отделы</option>
+                        </select>
+                        <button id="applyFilterBtn">Применить</button>
+                    </div>
+                    <div id="employeesTableContainer" class="loading">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gapModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeGapModal()">&times;</span>
+                <h3>📈 GAP-анализ</h3>
+                <div id="gapContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+        let token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+        const employee_id = localStorage.getItem('employee_id');
+        let chart = null;
+
+        // Данные для сортировки
+        let currentEmployeesData = [];
+        let currentSortColumn = null;
+        let currentSortDirection = 'asc';
+
+        async function fetchWithAuth(url, options = {}) {
+            const headers = {
+                ...options.headers,
+                'Authorization': `Bearer ${token}`
+            };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('employee_id');
+                location.reload();
+                throw new Error('Unauthorized');
+            }
+            return response;
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('employee_id');
+            location.reload();
+        });
+        
+            if (role === 'admin') {
+                document.getElementById('fullClearDbBtn').style.display = 'inline-block';
+            }
+        async function checkAccounts() {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/check-accounts`);
+                const data = await response.json();
+                document.getElementById('exportAccountsBtn').style.display = data.exists ? 'inline-block' : 'none';
+            } catch (error) {
+                console.error('Ошибка проверки учётных записей:', error);
+            }
+        }
+
+        async function loadDepartments() {
+            try {
+                const response = await fetchWithAuth(`${API_URL}/departments`);
+                const depts = await response.json();
+                const select = document.getElementById('departmentFilter');
+                select.innerHTML = '<option value="">Все отделы</option>';
+                depts.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept;
+                    option.textContent = dept;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки отделов:', error);
+            }
+        }
+
+        async function loadDashboard() {
+            try {
+                const department = document.getElementById('departmentFilter').value;
+                let url = `${API_URL}/dashboard`;
+                if (department) url += `?department=${encodeURIComponent(department)}`;
+                const response = await fetchWithAuth(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const dashboard = await response.json();
+
+                const ctx = document.getElementById('gradesChart').getContext('2d');
+                if (chart) chart.destroy();
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(dashboard.grades_count),
+                        datasets: [{
+                            label: 'Количество сотрудников',
+                            data: Object.values(dashboard.grades_count),
+                            backgroundColor: ['#48bb78', '#ed8936', '#9f7aea'],
+                            borderRadius: 10
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'top' } }
+                    }
+                });
+
+                const hipoContainer = document.getElementById('hipoContainer');
+                if (dashboard.hipo_employees && dashboard.hipo_employees.length > 0) {
+                    hipoContainer.innerHTML = dashboard.hipo_employees.map(h => `
+                        <div class="hipo-card">
+                            <strong>⭐ ${h.name}</strong><br>
+                            ${h.position || '—'}<br>
+                            Балл: ${h.score} | Грейд: ${h.grade}
+                        </div>
+                    `).join('');
+                } else {
+                    hipoContainer.innerHTML = '<p>Нет сотрудников с высоким потенциалом</p>';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки дашборда:', error);
+                document.getElementById('hipoContainer').innerHTML = '<p style="color:red;">Ошибка подключения к серверу</p>';
+            }
+        }
+
+function sortEmployees(columnIndex) {
+    if (currentSortColumn === columnIndex) {
+        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = columnIndex;
+        currentSortDirection = 'asc';
+    }
+    const sorted = [...currentEmployeesData];
+    sorted.sort((a, b) => {
+        let aVal, bVal;
+        switch (columnIndex) {
+            case 0: aVal = a.id; bVal = b.id; break;
+            case 1: aVal = a.name; bVal = b.name; break;
+            case 2: aVal = a.position; bVal = b.position; break;
+            case 3: aVal = a.grade_result.grade; bVal = b.grade_result.grade; break;
+            case 4: aVal = a.formal_grade || ''; bVal = b.formal_grade || ''; break;
+            case 5: aVal = a.grade_result.total_score; bVal = b.grade_result.total_score; break;
+            case 6: aVal = a.metrics.tasks_completed; bVal = b.metrics.tasks_completed; break;
+            case 7: aVal = a.metrics.deadlines_met; bVal = b.metrics.deadlines_met; break;
+            case 8: aVal = a.recommendation || ''; bVal = b.recommendation || ''; break;
+            default: return 0;
+        }
+        if (typeof aVal === 'number') {
+            return currentSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+        } else {
+            const comparison = String(aVal).localeCompare(String(bVal));
+            return currentSortDirection === 'asc' ? comparison : -comparison;
+        }
+    });
+    renderEmployeesTable(sorted);
+}
+
+function renderEmployeesTable(employees) {
+    if (employees.length === 0) {
+        document.getElementById('employeesTableContainer').innerHTML = '<p>Нет данных. Загрузите файл с сотрудниками.</p>';
+        return;
+    }
+
+    let html = '<div class="employees-table-wrapper"><table id="employeesTable"><thead><tr>';
+    const headers = ['ID', 'Имя', 'Должность', 'Грейд (реальный)', 'Формальный грейд', 'Балл', 'Задачи', 'Дедлайны', 'Рекомендация', 'Действия'];
+    headers.forEach((header, idx) => {
+        let sortIndicator = '';
+        if (currentSortColumn === idx) {
+            sortIndicator = currentSortDirection === 'asc' ? ' ▲' : ' ▼';
+        }
+        html += `<th onclick="sortEmployees(${idx})">${header}<i>${sortIndicator}</i></th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    for (const emp of employees) {
+        const grade = emp.grade_result.grade;
+        const gradeClass = `grade-${grade.toLowerCase()}`;
+        const recommendation = emp.recommendation || '';
+        let recClass = '';
+        if (recommendation === 'Повысить') recClass = 'up';
+        else if (recommendation === 'Понизить') recClass = 'down';
+        else recClass = 'keep';
+
+        const escapedName = emp.name.replace(/'/g, "\\'");
+
+        html += '<tr>';
+        html += '<td>' + emp.id + '</td>';
+        html += '<td>' + emp.name + '</td>';
+        html += '<td>' + emp.position + '</td>';
+        html += '<td class="' + gradeClass + '">' + grade + '</td>';
+        html += '<td>' + (emp.formal_grade || '—') + '</td>';   // Формальный грейд
+        html += '<td>' + emp.grade_result.total_score + '</td>';
+        html += '<td>' + emp.metrics.tasks_completed + '</td>';
+        html += '<td>' + emp.metrics.deadlines_met + '%</td>';
+        html += '<td class="recommendation-' + recClass + '">' + recommendation + '</td>';
+        html += '<td><button onclick="viewEmployee(' + emp.id + ')">👤 Профиль</button> <button onclick="viewGapAnalysis(' + emp.id + ', \'' + escapedName + '\')">📊 GAP-анализ</button></td>';
+        html += '</tr>';
+    }
+    html += '</tbody></table></div>';
+    document.getElementById('employeesTableContainer').innerHTML = html;
+}
+        async function loadEmployees() {
+            try {
+                const department = document.getElementById('departmentFilter').value;
+                let url = `${API_URL}/employees`;
+                if (department) url += `?department=${encodeURIComponent(department)}`;
+                const response = await fetchWithAuth(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const employees = await response.json();
+                currentEmployeesData = employees;
+                currentSortColumn = null;
+                currentSortDirection = 'asc';
+                renderEmployeesTable(employees);
+            } catch (error) {
+                console.error('Ошибка загрузки сотрудников:', error);
+                document.getElementById('employeesTableContainer').innerHTML = '<p style="color:red;">Ошибка загрузки списка сотрудников</p>';
+            }
+        }
+
+        function viewEmployee(id) {
+            window.location.href = `employee.html?id=${id}`;
+        }
+
+        async function viewGapAnalysis(id, name) {
+            const modal = document.getElementById('gapModal');
+            const content = document.getElementById('gapContent');
+            content.innerHTML = '<div class="spinner"></div>';
+            modal.style.display = 'flex';
+
+            try {
+                const response = await fetchWithAuth(`${API_URL}/employees/${id}/gap_analysis`);
+                const data = await response.json();
+                if (data.error) {
+                    content.innerHTML = `<p style="color:red;">${data.error}</p>`;
+                } else {
+                    let html = `<p><strong>Сотрудник:</strong> ${data.employee_name}</p>`;
+                    html += `<p><strong>Роль:</strong> ${data.role}</p>`;
+                    html += `<h4>Сравнение с целевым профилем:</h4>`;
+                    for (const g of data.gaps) {
+                        const statusClass = g.status === 'good' ? 'gap-good' : 'gap-need';
+                        html += `
+                            <div class="gap-item ${statusClass}">
+                                <strong>${getCompetencyName(g.competency)}</strong><br>
+                                Текущий: ${(g.current * 100).toFixed(0)}% | 
+                                Целевой: ${(g.target * 100).toFixed(0)}% | 
+                                Отставание: ${(g.gap * 100).toFixed(0)}%
+                                ${g.status === 'need_improvement' ? '⚠️ Требуется развитие' : '✅ Цель достигнута'}
+                            </div>
+                        `;
+                    }
+                    content.innerHTML = html;
+                }
+            } catch (error) {
+                content.innerHTML = `<p style="color:red;">Ошибка: ${error.message}</p>`;
+            }
+        }
+
+        function getCompetencyName(eng) {
+            const names = {
+                'tasks': 'Выполнение задач',
+                'deadlines': 'Соблюдение сроков',
+                'code_quality': 'Качество кода',
+                'communication': 'Коммуникации'
+            };
+            return names[eng] || eng;
+        }
+
+        function closeGapModal() {
+            document.getElementById('gapModal').style.display = 'none';
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('uploadFile');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Выберите файл');
+                return;
+            }
+            const statusSpan = document.getElementById('uploadStatus');
+            statusSpan.innerHTML = '⏳ Загрузка...';
+            statusSpan.style.color = 'blue';
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetchWithAuth(`${API_URL}/upload`, { method: 'POST', body: formData });
+                const result = await response.json();
+                if (response.ok) {
+                    statusSpan.innerHTML = `✅ ${result.message}`;
+                    statusSpan.style.color = 'green';
+                    if (result.users && result.users.length > 0) {
+                        const accountsDiv = document.getElementById('accountsList');
+                        accountsDiv.innerHTML = result.users.map(u => {
+                            if (u.password !== 'already exists') {
+                                return `<div><strong>${u.name}</strong>: логин = <code>${u.login}</code>, пароль = <code>${u.password}</code></div>`;
+                            } else {
+                                return `<div><strong>${u.name}</strong>: логин = <code>${u.login}</code> (учётная запись уже существовала)</div>`;
+                            }
+                        }).join('');
+                        document.getElementById('uploadResult').style.display = 'block';
+                        checkAccounts();
+                        loadDepartments();
+                    } else {
+                        document.getElementById('uploadResult').style.display = 'none';
+                    }
+                    loadDashboard();
+                    loadEmployees();
+                } else {
+                    statusSpan.innerHTML = `❌ ${result.detail}`;
+                    statusSpan.style.color = 'red';
+                    document.getElementById('uploadResult').style.display = 'none';
+                }
+            } catch (error) {
+                statusSpan.innerHTML = `❌ Ошибка: ${error.message}`;
+                statusSpan.style.color = 'red';
+                document.getElementById('uploadResult').style.display = 'none';
+            }
+        }
+
+        async function clearData() {
+            if (!confirm('Удалить всех сотрудников? Данные будут потеряны.')) return;
+            const statusSpan = document.getElementById('uploadStatus');
+            statusSpan.innerHTML = '⏳ Удаление...';
+            try {
+                const response = await fetchWithAuth(`${API_URL}/employees`, { method: 'DELETE' });
+                const result = await response.json();
+                statusSpan.innerHTML = `✅ ${result.message}`;
+                document.getElementById('uploadResult').style.display = 'none';
+                document.getElementById('exportAccountsBtn').style.display = 'none';
+                loadDashboard();
+                loadEmployees();
+                loadDepartments();
+            } catch (error) {
+                statusSpan.innerHTML = `❌ Ошибка: ${error.message}`;
+                     }
+                                    }
+        // ==================== Полная очистка БД (только admin) ====================
+async function fullClearDatabase() {
+    if (!confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕХ сотрудников и их учётные записи. Вы уверены?')) return;
+    const statusSpan = document.getElementById('uploadStatus');
+    statusSpan.innerHTML = '⏳ Полная очистка...';
+    statusSpan.style.color = 'blue';
+    try {
+        const response = await fetchWithAuth(`${API_URL}/full-clear`, { method: 'DELETE' });
+        const result = await response.json();
+        if (response.ok) {
+            statusSpan.innerHTML = `✅ ${result.message}`;
+            statusSpan.style.color = 'green';
+            document.getElementById('uploadResult').style.display = 'none';
+            document.getElementById('exportAccountsBtn').style.display = 'none';
+            loadDashboard();
+            loadEmployees();
+            loadDepartments();
+        } else {
+            statusSpan.innerHTML = `❌ ${result.detail || 'Ошибка'}`;
+            statusSpan.style.color = 'red';
+        }
+    } catch (error) {
+        statusSpan.innerHTML = `❌ Ошибка: ${error.message}`;
+        statusSpan.style.color = 'red';
+    }
+}
+
+        function exportExcel() {
+            window.location.href = `${API_URL}/export/excel?token=${token}`;
+        }
+
+        function refreshAll() {
+            loadDashboard();
+            loadEmployees();
+            document.getElementById('uploadStatus').innerHTML = '';
+        }
+
+        document.getElementById('applyFilterBtn').addEventListener('click', () => {
+            loadDashboard();
+            loadEmployees();
+        });
+        document.getElementById('uploadBtn').addEventListener('click', uploadFile);
+        document.getElementById('clearDataBtn').addEventListener('click', clearData);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+        document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+        document.getElementById('exportAccountsBtn').addEventListener('click', () => {
+            window.location.href = `${API_URL}/export/accounts?token=${token}`;
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('gapModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            try {
+                const res = await fetch(`${API_URL}/token`, { method: 'POST', body: formData });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('role', data.role);
+                    localStorage.setItem('employee_id', data.employee_id);
+                    location.reload();
+                } else {
+                    document.getElementById('loginMessage').innerText = 'Неверный логин или пароль';
+                }
+            } catch (err) {
+                document.getElementById('loginMessage').innerText = 'Ошибка соединения';
+            }
+        });
+
+        if (!token) {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('appContent').style.display = 'none';
+        } else {
+            if (role === 'employee' && employee_id) {
+                window.location.href = `employee.html?id=${employee_id}`;
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('appContent').style.display = 'block';
+                checkAccounts();
+                loadDepartments();
+                loadDashboard();
+                loadEmployees();
+            }
+        }
+                document.getElementById('fullClearDbBtn').addEventListener('click', fullClearDatabase);
+
+        // Переключение на форму регистрации
+document.getElementById('showRegisterBtn').addEventListener('click', () => {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+});
+
+// Переключение на форму входа
+document.getElementById('showLoginBtn').addEventListener('click', () => {
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('registerMessage').innerText = '';
+});
+
+// Регистрация
+document.getElementById('registerBtn').addEventListener('click', async () => {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regPasswordConfirm').value;
+    const msgDiv = document.getElementById('registerMessage');
+
+    if (!username || !password) {
+        msgDiv.innerText = 'Заполните все поля';
+        return;
+    }
+    if (password !== confirm) {
+        msgDiv.innerText = 'Пароли не совпадают';
+        return;
+    }
+    if (password.length < 4) {
+        msgDiv.innerText = 'Пароль должен быть не менее 4 символов';
+        return;
+    }
+
+    msgDiv.innerText = 'Регистрация...';
+    msgDiv.style.color = 'blue';
+
+    try {
+        const response = await fetch(`${API_URL}/register?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&role=hr`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+        if (response.ok) {
+            msgDiv.innerText = 'Регистрация успешна! Теперь войдите.';
+            msgDiv.style.color = 'green';
+            // Очистить поля регистрации
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regPassword').value = '';
+            document.getElementById('regPasswordConfirm').value = '';
+            // Переключиться на форму входа через 2 секунды
+            setTimeout(() => {
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('loginForm').style.display = 'block';
+                msgDiv.innerText = '';
+            }, 2000);
+        } else {
+            msgDiv.innerText = data.detail || 'Ошибка регистрации';
+            msgDiv.style.color = 'red';
+        }
+    } catch (err) {
+        msgDiv.innerText = 'Ошибка соединения';
+        msgDiv.style.color = 'red';
+    }
+});
+    </script>
+</body>
+</html>
