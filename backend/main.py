@@ -308,7 +308,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         "access_token": access_token,
         "token_type": "bearer",
         "role": user.role,
-        "employee_id": user.employee_id
+        "employee_id": user.employee_id,
         "company_id": user.company_id
     }
 
