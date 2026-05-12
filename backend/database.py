@@ -33,6 +33,19 @@ def verify_password(password: str, hashed: str) -> bool:
     hash_obj = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
     return hash_obj.hex() == stored_hash
 
+# Модель компании
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
+
+    # Связи
+    users = relationship("User", back_populates="company")
+    employees = relationship("Employee", back_populates="company")
+    
 # Модель пользователя
 class User(Base):
     __tablename__ = "users"
@@ -64,17 +77,17 @@ class Employee(Base):
     position = Column(String)
     department = Column(String, default="")
     experience = Column(Integer, default=0)
-    photo_url = Column(String, default="")
+    formal_grade = Column(String, default="")
     tasks_completed = Column(Integer, default=0)
     deadlines_met = Column(Float, default=0.0)
-    commits_count = Column(Integer, default=0)
     code_quality_score = Column(Float, default=0.0)
     communication_score = Column(Float, default=0.0)
     grade = Column(String, default="Не определен")
-    formal_grade = Column(String, default="")
-    recommendation = Column(String, default="")
+    company_id = Column(Integer, ForeignKey("companies.id"), nullable=False)  # <-- добавляем
+    photo_url = Column(String, default="")  # если есть
 
-    user = relationship("User", back_populates="employee", uselist=False)
+    company = relationship("Company", back_populates="employees")
+    user = relationship("User", back_populates="employee")
     history = relationship("History", back_populates="employee", cascade="all, delete-orphan")
     actions = relationship("ActionLog", back_populates="employee", cascade="all, delete-orphan")
 
