@@ -3,6 +3,10 @@ electron/dist/
 electron/node_modules/
 electron/out/
 electron/package-lock.json
+electron/build/
+electron/backend/build/
+electron/backend/dist/
+electron/gradeinsight_backend.exe
 
 # PyInstaller сборки
 backend/dist/
@@ -17,6 +21,7 @@ passwords.json
 # Python кэш
 __pycache__/
 *.pyc
+*.pyo
 
 # IDE
 .vscode/
@@ -29,6 +34,9 @@ Thumbs.db
 # Логи
 *.log
 
-# Python
+# Python виртуальное окружение
 venv/
 env/
+
+# Тестовые данные (можно оставить или исключить – по желанию)
+# backend/data/
