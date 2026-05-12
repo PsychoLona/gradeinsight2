@@ -214,11 +214,18 @@ async def get_current_user(
 
 def require_role(required_roles: List[str]):
     def role_checker(current_user: User = Depends(get_current_user)):
+        if current_user.role == "super_admin":
+            return current_user
         if current_user.role not in required_roles:
             raise HTTPException(status_code=403, detail="Not enough permissions")
         return current_user
     return role_checker
 
+def get_company_filter(current_user: User, db: Session):
+    """Возвращает фильтр по company_id для запросов"""
+    if current_user.role == "super_admin":
+        return None  # super_admin видит всех
+    return current_user.company_id  # остальные только свою компанию
 # ==================== Вспомогательные функции ====================
 
 def get_competency_weights_from_db(role_name: str, db: Session):
@@ -302,6 +309,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
         "token_type": "bearer",
         "role": user.role,
         "employee_id": user.employee_id
+        "company_id": user.company_id
     }
 
 @app.post("/register")
@@ -314,6 +322,40 @@ def register(username: str, password: str, role: str = "employee", employee_id: 
     db.commit()
     return {"message": "User created"}
 
+# ==================== Компании ====================
+@app.post("/register_company")
+def register_company(
+    username: str,
+    password: str,
+    company_name: str,
+    db: Session = Depends(get_db)
+):
+    # Проверка, существует ли компания
+    existing_company = db.query(Company).filter(Company.name == company_name).first()
+    if existing_company:
+        raise HTTPException(status_code=400, detail="Компания с таким названием уже существует")
+    
+    # Проверка пользователя
+    if db.query(User).filter(User.username == username).first():
+        raise HTTPException(status_code=400, detail="Username already registered")
+    
+    # Создаём компанию
+    company = Company(name=company_name, is_active=True)
+    db.add(company)
+    db.flush()
+    
+    # Создаём администратора компании
+    hashed = User.hash_password(password)
+    admin_user = User(
+        username=username,
+        hashed_password=hashed,
+        role="admin",
+        company_id=company.id,
+        is_active=True
+    )
+    db.add(admin_user)
+    db.commit()
+    return {"message": f"Company '{company_name}' created successfully"}
 # ==================== Сотрудники (только admin/hr) ====================
 
 @app.get("/employees")
@@ -323,6 +365,11 @@ def get_employees(
     current_user: User = Depends(require_role(["admin", "hr"]))
 ):
     query = db.query(Employee)
+    
+        company_id = get_company_filter(current_user, db)
+    if company_id is not None:
+        query = query.filter(Employee.company_id == company_id)
+        
     if department:
         query = query.filter(Employee.department == department)
     employees = query.all()
