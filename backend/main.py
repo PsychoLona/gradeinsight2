@@ -45,7 +45,7 @@ try:
     print("Importing database module...")
     from database import (
         get_db, Employee, init_db, Role, Competency, GradeLevel,
-        CompetencyWeight, RoleTarget, History, ActionLog, User
+        CompetencyWeight, RoleTarget, History, ActionLog, User, Company
     )
     print("Database imported")
 
