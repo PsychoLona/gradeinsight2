@@ -431,6 +431,17 @@
         <div id="registerMessage" style="color: red; margin-top: 10px;"></div>
     </div>
 
+    <div id="registerCompanyForm" class="login-container" style="display: none;">
+        <h2>📝 Регистрация организации</h2>
+        <input type="text" id="regCompanyName" placeholder="Название организации">
+        <input type="text" id="regUsername" placeholder="Логин администратора">
+        <input type="password" id="regPassword" placeholder="Пароль">
+        <input type="password" id="regPasswordConfirm" placeholder="Повторите пароль">
+        <button id="registerCompanyBtn">Зарегистрировать организацию</button>
+        <button id="showLoginFromRegCompanyBtn" class="link-btn">Уже есть аккаунт? Войти</button>
+        <div id="registerCompanyMessage" style="color: red; margin-top: 10px;"></div>
+    </div>
+    
     <div id="appContent" style="display: none;">
         <div class="container">
             <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
@@ -541,6 +552,37 @@
             }
         }
 
+        document.getElementById('registerCompanyBtn').addEventListener('click', async () => {
+            const company_name = document.getElementById('regCompanyName').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regPasswordConfirm').value;
+            
+            if (!company_name || !username || !password) {
+                msgDiv.innerText = 'Заполните все поля';
+                return;
+            }
+            if (password !== confirm) {
+                msgDiv.innerText = 'Пароли не совпадают';
+                return;
+            }
+            
+            try {
+                const res = await fetch(`${API_URL}/register_company?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&company_name=${encodeURIComponent(company_name)}`, {
+                    method: 'POST'
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Организация зарегистрирована! Теперь войдите.');
+                    // Переключиться на форму входа
+                } else {
+                    msgDiv.innerText = data.detail;
+                }
+            } catch (err) {
+                msgDiv.innerText = 'Ошибка соединения';
+            }
+        });
+        
         async function loadDepartments() {
             try {
                 const response = await fetchWithAuth(`${API_URL}/departments`);
