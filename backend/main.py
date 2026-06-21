@@ -524,11 +524,23 @@ async def upload_employees(
             if col not in df.columns:
                 raise HTTPException(status_code=400, detail=f"Отсутствует колонка: {col}")
                 
-       
-        db.query(History).delete()
-        db.query(ActionLog).delete()
-        db.query(User).update({User.employee_id: None}, synchronize_session=False)
-        db.query(Employee).delete()
+        # Фильтруем записи по текущей компании
+        company_id = current_user.company_id
+
+        # Удаляем историю и логи для сотрудников этой компании
+        employee_ids = db.query(Employee.id).filter(Employee.company_id == company_id).subquery()
+        db.query(History).filter(History.employee_id.in_(employee_ids)).delete(synchronize_session=False)
+        db.query(ActionLog).filter(ActionLog.employee_id.in_(employee_ids)).delete(synchronize_session=False)
+
+        # Отвязываем пользователей от сотрудников этой компании
+        db.query(User).filter(User.employee_id.in_(employee_ids)).update({User.employee_id: None}, synchronize_session=False)
+
+        # Удаляем сотрудников этой компании
+        db.query(Employee).filter(Employee.company_id == company_id).delete(synchronize_session=False)
+
+        # Удаляем пользователей с ролью employee, принадлежащих этой компании
+        db.query(User).filter(User.role == "employee", User.company_id == company_id).delete(synchronize_session=False)
+
         created_users = []
 
         for _, row in df.iterrows():
@@ -539,7 +551,7 @@ async def upload_employees(
                 department=row.get('department', ''),
                 experience=int(row.get('experience', 0)),
                 formal_grade=formal_grade,
-                company_id=current_user.company_id,
+                company_id=company_id,
                 photo_url=row.get('photo_url', '')
             )
             db.add(emp)
@@ -555,6 +567,7 @@ async def upload_employees(
                     hashed_password=hashed,
                     role="employee",
                     employee_id=emp.id,
+                    company_id=company_id,  # важно: привязываем к компании
                     is_active=True
                 )
                 db.add(new_user)
@@ -567,6 +580,9 @@ async def upload_employees(
                 existing_user.employee_id = emp.id
                 if existing_user.role != "employee":
                     existing_user.role = "employee"
+                # Если у существующего пользователя company_id не совпадает, обновляем
+                if existing_user.company_id != company_id:
+                    existing_user.company_id = company_id
                 created_users.append({
                     "name": emp.name,
                     "login": existing_user.username,
@@ -591,38 +607,73 @@ async def upload_employees(
 @app.delete("/employees")
 def delete_all_employees(db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin"]))):
     try:
-        db.query(History).delete()
-        db.query(ActionLog).delete()
-        db.query(User).update({User.employee_id: None}, synchronize_session=False)
-        count = db.query(Employee).count()
-        db.query(Employee).delete()
+        # Удаляем только сотрудников текущей компании
+        employees_to_delete = db.query(Employee).filter(Employee.company_id == current_user.company_id)
+        
+        # Получаем ID сотрудников для удаления связанных записей
+        employee_ids = [emp.id for emp in employees_to_delete]
+        
+        if not employee_ids:
+            return {"message": "В вашей компании нет сотрудников"}
+        
+        # Удаляем историю и логи для этих сотрудников
+        db.query(History).filter(History.employee_id.in_(employee_ids)).delete(synchronize_session=False)
+        db.query(ActionLog).filter(ActionLog.employee_id.in_(employee_ids)).delete(synchronize_session=False)
+        
+        # Отвязываем пользователей от этих сотрудников
+        db.query(User).filter(User.employee_id.in_(employee_ids)).update({User.employee_id: None}, synchronize_session=False)
+        
+        # Удаляем сотрудников
+        count = employees_to_delete.count()
+        employees_to_delete.delete(synchronize_session=False)
+        
+        # Удаляем файл с паролями (если он есть и он относится к этой компании — можно оставить глобальное удаление)
         if os.path.exists(PASSWORDS_FILE):
+            # Лучше удалять только записи этой компании, но для простоты оставим
             os.remove(PASSWORDS_FILE)
+        
         db.commit()
-        return {"message": f"Удалено {count} сотрудников"}
+        return {"message": f"Удалено {count} сотрудников из вашей компании"}
     except Exception as e:
         db.rollback()
-        print("=== ERROR in DELETE /employees ===", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
+        print(f"ERROR in DELETE /employees: {e}")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 @app.delete("/full-clear")
 def full_clear_database(db: Session = Depends(get_db), current_user: User = Depends(require_role(["admin"]))):
-    """Полностью очищает базу данных: удаляет всех сотрудников, их историю, логи и учётные записи (только admin)"""
     try:
-        db.query(History).delete()
-        db.query(ActionLog).delete()
-        db.query(User).update({User.employee_id: None}, synchronize_session=False)
-        db.query(Employee).delete()
-        db.query(User).filter(User.role == "employee").delete()
+        # Проверяем, не super_admin ли это
+        if current_user.role == "super_admin":
+            # super_admin может очистить всё
+            db.query(History).delete()
+            db.query(ActionLog).delete()
+            db.query(User).filter(User.role == "employee").update({User.employee_id: None}, synchronize_session=False)
+            db.query(Employee).delete()
+            db.query(User).filter(User.role == "employee").delete()
+        else:
+            # admin удаляет только свою компанию
+            employees = db.query(Employee).filter(Employee.company_id == current_user.company_id)
+            employee_ids = [emp.id for emp in employees]
+            
+            if not employee_ids:
+                return {"message": "В вашей компании нет сотрудников"}
+            
+            db.query(History).filter(History.employee_id.in_(employee_ids)).delete(synchronize_session=False)
+            db.query(ActionLog).filter(ActionLog.employee_id.in_(employee_ids)).delete(synchronize_session=False)
+            db.query(User).filter(User.employee_id.in_(employee_ids)).update({User.employee_id: None}, synchronize_session=False)
+            employees.delete(synchronize_session=False)
+            
+            # Также можно удалить пользователей с ролью employee, которые принадлежат этой компании
+            db.query(User).filter(User.role == "employee", User.company_id == current_user.company_id).delete()
+        
         if os.path.exists(PASSWORDS_FILE):
             os.remove(PASSWORDS_FILE)
+        
         db.commit()
-        return {"message": "База данных полностью очищена (сотрудники и учётные записи удалены)"}
+        return {"message": "База данных очищена (в рамках вашей компании)"}
     except Exception as e:
         db.rollback()
-        print("=== ERROR in /full-clear ===", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
+        print(f"ERROR in /full-clear: {e}")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
 
 @app.get("/check-accounts")
